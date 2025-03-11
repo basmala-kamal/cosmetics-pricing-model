@@ -3,18 +3,19 @@ import json
 from datetime import datetime
 from bs4 import BeautifulSoup
 import re
+import time
+import requests  # Direct API calls for better reliability
 
 class NoonSpider(scrapy.Spider):
     name = "noon_sa"
     allowed_domains = ["noon.com"]
-    
-    # Custom settings to prevent timeouts and avoid getting blocked
+
     custom_settings = {
-        "DOWNLOAD_DELAY": 2,  # Delay between requests
-        "CONCURRENT_REQUESTS": 2,  # Limit simultaneous requests
-        "RETRY_TIMES": 5,          # Retry failed requests
-        "DOWNLOAD_TIMEOUT": 20,    # Increase timeout duration
-        "ROBOTSTXT_OBEY": False,   # Ignore robots.txt
+        "DOWNLOAD_DELAY": 5,
+        "CONCURRENT_REQUESTS": 1,
+        "RETRY_TIMES": 5,
+        "DOWNLOAD_TIMEOUT": 300,
+        "ROBOTSTXT_OBEY": False,
         "USER_AGENT": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
             " AppleWebKit/537.36 (KHTML, like Gecko)"
@@ -22,118 +23,88 @@ class NoonSpider(scrapy.Spider):
         ),
     }
 
+    SCRAPINGANT_API_URL = "https://api.scrapingant.com/v2/general"
+
     def __init__(self, urls=None, *args, **kwargs):
         super(NoonSpider, self).__init__(*args, **kwargs)
+        self.api_key = 'd3f13b11a6dc4c05b170b31655780006'
 
-        if urls:
-            self.logger.info(f"Received URLs: {urls}")
-            self.start_urls = urls.split(",")
-        else:
-            default_url = "https://www.noon.com/saudi-en/search/?isCarouselView=false&limit=100&originalQuery=face%20serums&page=1"
-            self.logger.info(f"No URLs provided. Using default: {default_url}")
-            self.start_urls = [default_url]
+        self.start_url = urls if urls else "https://www.noon.com/saudi-en/search/?q=face%20serums"
 
-        # Dictionary to keep track of open files for each URL
-        self.output_files = {}
-        
-        # Dictionary to track if the first item for a given URL has been written
-        # to handle JSON commas properly.
-        self.first_item_written = {}
+        self.output_file_name = f"noon_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        self.output_file = open(self.output_file_name, 'w', encoding='utf-8')
+        self.output_file.write('[')
+        self.first_item_written = False
 
     def start_requests(self):
-        self.logger.info("Starting requests ...")
-        
-        for url in self.start_urls:
-            # Determine a 'category' from the URL if possible
-            category = "default"
-            if "originalQuery=" in url:
-                category = url.split("originalQuery=")[1].split("&")[0] or "default"
+        self.logger.info(f"Starting request for URL: {self.start_url}")
+        self.scrape_page(self.start_url, 1)
 
-            # Generate a unique timestamped filename
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_file_name = f"{category}_{timestamp}.json"
+    def scrape_page(self, base_url, page_number, retry_attempts=0):
+        """Fetch content using ScrapingAnt's API for maximum stability."""
+        paginated_url = re.sub(r"page=\d+", f"page={page_number}", base_url)
+        self.logger.info(f"Fetching URL with ScrapingAnt API: {paginated_url}")
 
-            # Open the file and write the opening bracket
-            self.logger.info(f"Opening file: {output_file_name} for URL: {url}")
-            f = open(output_file_name, 'w', encoding='utf-8')
-            f.write('[')
-            self.output_files[url] = f
+        params = {
+            "url": paginated_url,
+            "x-api-key": self.api_key,
+            "wait_for": 5,                   # Wait for dynamic content to load
+            "browser": True,                 # Enable JavaScript rendering
+            "proxy_country": 'ae',           # Use UAE-based proxies for faster access
+            "screenshot": True               # Debugging feature to capture failed pages
+        }
 
-            # Initialize the comma-control flag to False
-            self.first_item_written[url] = False
+        try:
+            response = requests.get(self.SCRAPINGANT_API_URL, params=params, timeout=300)
+            
+            if response.status_code == 200:
+                soup = BeautifulSoup(response.content, 'lxml')
+                product_cards = soup.select('[data-qa="product-name"]')
 
-            # Generate up to 15 page requests
-            for page_number in range(1, 16):
-                # Replace or append `page=page_number` in the URL
-                paginated_url = re.sub(r"page=\d+", f"page={page_number}", url)
-                
-                # If, for any reason, the base URL doesn't contain page=, 
-                # you might need to append it differently. Just an example below:
-                if "page=" not in paginated_url:
-                    paginated_url += f"&page={page_number}"
+                for card in product_cards:
+                    product_name = card.get_text(strip=True) if card else None
+                    price_elem = card.find_next('strong', class_='amount')
+                    product_price = price_elem.get_text(strip=True) if price_elem else None
 
-                self.logger.info(f"Scheduling request for: {paginated_url}")
-                
-                yield scrapy.Request(
-                    url=paginated_url,
-                    headers={"User-Agent": self.custom_settings["USER_AGENT"]},
-                    callback=self.parse,
-                    errback=self.handle_error,
-                    meta={'url': url, 'page': page_number},
-                )
+                    if product_name and product_price:
+                        item = {
+                            'name': product_name,
+                            'price': product_price,
+                            'page': page_number
+                        }
 
-    def parse(self, response):
-        """Parse a single page of product results."""
-        url = response.meta['url']
-        current_page = response.meta['page']
-        self.logger.info(f"Parsing page {current_page} for URL: {url}")
+                        if self.first_item_written:
+                            self.output_file.write(',')
+                        else:
+                            self.first_item_written = True
 
-        file_handle = self.output_files.get(url)
-        if not file_handle:
-            self.logger.warning(f"No file handle found for URL: {url}. This is unexpected.")
-            return
+                        json.dump(item, self.output_file, ensure_ascii=False, indent=4)
 
-        soup = BeautifulSoup(response.text, 'lxml')
-        
-        # Noon might change their selectors, so adjust as necessary
-        product_cards = soup.select('[data-qa="product-name"]')
-        self.logger.info(f"Found {len(product_cards)} product cards on page {current_page} for URL: {url}")
-
-        for card in product_cards:
-            product_name = card.get_text(strip=True) if card else None
-            price_elem = card.find_next('strong', class_='amount')
-            product_price = price_elem.get_text(strip=True) if price_elem else None
-
-            # If there's valid data, write it to JSON
-            if product_name and product_price:
-                item = {
-                    'name': product_name,
-                    'price': product_price,
-                    'page': current_page
-                }
-
-                # Write comma if this isn't the first item in the file
-                if self.first_item_written[url]:
-                    file_handle.write(',')
+                # Follow pagination link dynamically
+                next_page_link = soup.select_one('a[aria-label="Next"]')
+                if next_page_link:
+                    self.scrape_page(base_url, page_number + 1)
                 else:
-                    self.first_item_written[url] = True
+                    self.logger.info(f"No more pages found after page {page_number}")
 
-                # Dump the actual JSON
-                json.dump(item, file_handle, ensure_ascii=False, indent=4)
             else:
-                self.logger.debug("Skipped product with missing name or price.")
+                self.logger.error(f"Failed to fetch {paginated_url}: {response.status_code}")
+                self.logger.error(f"Response content: {response.text}")
 
-    def handle_error(self, failure):
-        """Handle request failures to retry or log them."""
-        self.logger.error(f"Request failed: {failure.request.url}")
-        self.logger.error(f"Error: {failure.value}")
+        except Exception as e:
+            self.logger.error(f"Error fetching {paginated_url}: {e}")
+
+            # Exponential Backoff for Stability
+            if retry_attempts < 5:
+                delay = 2 ** retry_attempts
+                self.logger.warning(f"Retrying page {page_number} after {delay}s...")
+                time.sleep(delay)
+                self.scrape_page(base_url, page_number, retry_attempts + 1)
+            else:
+                self.logger.error(f"Failed after multiple retries: {paginated_url}")
 
     def closed(self, reason):
-        """When the spider closes, finalize each JSON file."""
+        """Close JSON file on completion."""
         self.logger.info(f"Spider closed. Reason: {reason}")
-        
-        for url, file_handle in list(self.output_files.items()):
-            self.logger.info(f"Closing file for URL: {url}")
-            file_handle.write(']')
-            file_handle.close()
-            del self.output_files[url]
+        self.output_file.write(']')
+        self.output_file.close()

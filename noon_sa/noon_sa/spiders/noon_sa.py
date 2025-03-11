@@ -4,7 +4,7 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import re
 import time
-import requests  # Direct API calls for better reliability
+import requests
 
 class NoonSpider(scrapy.Spider):
     name = "noon_sa"
@@ -28,9 +28,7 @@ class NoonSpider(scrapy.Spider):
     def __init__(self, urls=None, *args, **kwargs):
         super(NoonSpider, self).__init__(*args, **kwargs)
         self.api_key = 'd3f13b11a6dc4c05b170b31655780006'
-
-        self.start_url = urls if urls else "https://www.noon.com/saudi-en/search/?q=face%20serums"
-
+        self.start_url = urls if urls else "https://www.noon.com/saudi-en/search/?q=face%20serums&page=1"
         self.output_file_name = f"noon_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         self.output_file = open(self.output_file_name, 'w', encoding='utf-8')
         self.output_file.write('[')
@@ -38,35 +36,55 @@ class NoonSpider(scrapy.Spider):
 
     def start_requests(self):
         self.logger.info(f"Starting request for URL: {self.start_url}")
-        self.scrape_page(self.start_url, 1)
+        # Create a simple dummy request to start the process
+        yield scrapy.Request(
+            url="https://example.com",  # Dummy URL
+            callback=self.initialize_scraping,
+            dont_filter=True
+        )
 
-    def scrape_page(self, base_url, page_number, retry_attempts=0):
-        """Fetch content using ScrapingAnt's API for maximum stability."""
+    def initialize_scraping(self, response):
+        """Initialize the scraping process with page 1"""
+        # Make a direct API call to ScrapingAnt for the first page
+        self.process_page(1)
+        
+    def process_page(self, page_number, retry_attempts=0):
+        """Process a single page non-recursively"""
+        base_url = self.start_url
         paginated_url = re.sub(r"page=\d+", f"page={page_number}", base_url)
         self.logger.info(f"Fetching URL with ScrapingAnt API: {paginated_url}")
 
         params = {
             "url": paginated_url,
             "x-api-key": self.api_key,
-            "wait_for": 5,                   # Wait for dynamic content to load
-            "browser": True,                 # Enable JavaScript rendering
-            "proxy_country": 'ae',           # Use UAE-based proxies for faster access
-            "screenshot": True               # Debugging feature to capture failed pages
+            "wait_for": 5,
+            "browser": True,
+            "proxy_country": 'ae',
+            "screenshot": True
         }
 
         try:
-            response = requests.get(self.SCRAPINGANT_API_URL, params=params, timeout=300)
+            api_response = requests.get(self.SCRAPINGANT_API_URL, params=params, timeout=300)
             
-            if response.status_code == 200:
-                soup = BeautifulSoup(response.content, 'lxml')
+            if api_response.status_code == 200:
+                soup = BeautifulSoup(api_response.content, 'lxml')
+                
+                # Try different selectors for product cards
                 product_cards = soup.select('[data-qa="product-name"]')
-
+                
+                if not product_cards:
+                    self.logger.warning(f"No product cards found with primary selector. Trying alternatives.")
+                    product_cards = soup.select('div.productContainer') or \
+                                   soup.select('div.product-card')
+                
+                products_found = 0
                 for card in product_cards:
                     product_name = card.get_text(strip=True) if card else None
                     price_elem = card.find_next('strong', class_='amount')
                     product_price = price_elem.get_text(strip=True) if price_elem else None
 
                     if product_name and product_price:
+                        products_found += 1
                         item = {
                             'name': product_name,
                             'price': product_price,
@@ -79,27 +97,31 @@ class NoonSpider(scrapy.Spider):
                             self.first_item_written = True
 
                         json.dump(item, self.output_file, ensure_ascii=False, indent=4)
-
-                # Follow pagination link dynamically
+                
+                self.logger.info(f"Found {products_found} products on page {page_number}")
+                
+                # Check for next page
                 next_page_link = soup.select_one('a[aria-label="Next"]')
-                if next_page_link:
-                    self.scrape_page(base_url, page_number + 1)
+                if next_page_link and products_found > 0:
+                    self.logger.info(f"Moving to page {page_number + 1}")
+                    # Process the next page non-recursively
+                    self.process_page(page_number + 1)
                 else:
                     self.logger.info(f"No more pages found after page {page_number}")
 
             else:
-                self.logger.error(f"Failed to fetch {paginated_url}: {response.status_code}")
-                self.logger.error(f"Response content: {response.text}")
+                self.logger.error(f"Failed to fetch {paginated_url}: {api_response.status_code}")
+                self.logger.error(f"Response content: {api_response.text}")
 
         except Exception as e:
             self.logger.error(f"Error fetching {paginated_url}: {e}")
 
-            # Exponential Backoff for Stability
+            # Exponential Backoff for Stability - non-recursive
             if retry_attempts < 5:
                 delay = 2 ** retry_attempts
                 self.logger.warning(f"Retrying page {page_number} after {delay}s...")
                 time.sleep(delay)
-                self.scrape_page(base_url, page_number, retry_attempts + 1)
+                self.process_page(page_number, retry_attempts + 1)
             else:
                 self.logger.error(f"Failed after multiple retries: {paginated_url}")
 

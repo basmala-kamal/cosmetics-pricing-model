@@ -12,7 +12,7 @@ class AmazonSpider(scrapy.Spider):
             self.start_urls = urls.split(",")  
         else:
             self.start_urls = [
-                "https://www.amazon.sa/s?k=foundation&crid=1VFWJ49DC409R&sprefix=foundation%2Caps%2C325&ref=nb_sb_noss_1"
+                "https://www.amazon.sa/s?k=dry+oil+for+body+moisture&rh=n%3A16630494031%2Cn%3A16630742031&dc&language=en_AE&ds=v1%3AT05GTsPLJebLliF7G6Qh8OrgARkjwx0xetCigJUtksw&crid=W92RU8LE0OW6&qid=1742296988&rnid=17120842031&sprefix=dry+oil+for+body+moistur%2Caps%2C328&ref=sr_nr_n_2"
             ]
         
         self.output_files = {}

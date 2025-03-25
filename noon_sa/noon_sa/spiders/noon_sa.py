@@ -33,6 +33,7 @@ class NoonSpider(scrapy.Spider):
         self.output_file = open(self.output_file_name, 'w', encoding='utf-8')
         self.output_file.write('[')
         self.first_item_written = False
+        self.max_pages = 10  # Set a reasonable limit to avoid infinite loops
 
     def start_requests(self):
         self.logger.info(f"Starting request for URL: {self.start_url}")
@@ -49,9 +50,22 @@ class NoonSpider(scrapy.Spider):
         self.process_page(1)
         
     def process_page(self, page_number, retry_attempts=0):
-        """Process a single page non-recursively"""
+        """Process a single page using URL-based pagination"""
+        if page_number > self.max_pages:
+            self.logger.info(f"Reached maximum page limit ({self.max_pages})")
+            return
+            
+        # Create the paginated URL
         base_url = self.start_url
-        paginated_url = re.sub(r"page=\d+", f"page={page_number}", base_url)
+        if "page=" in base_url:
+            paginated_url = re.sub(r"page=\d+", f"page={page_number}", base_url)
+        else:
+            # If no page parameter exists, add it
+            if "?" in base_url:
+                paginated_url = f"{base_url}&page={page_number}"
+            else:
+                paginated_url = f"{base_url}?page={page_number}"
+                
         self.logger.info(f"Fetching URL with ScrapingAnt API: {paginated_url}")
 
         params = {
@@ -59,7 +73,9 @@ class NoonSpider(scrapy.Spider):
             "x-api-key": self.api_key,
             "wait_for": 5,
             "browser": True,
-            "proxy_country": 'ae',
+            "proxy_country": 'sa',  # Use Saudi Arabia proxies
+            "browser_timeout": 60000,  # 60 seconds timeout
+            "cookies": [{"name": "country", "value": "sa"}],  # Ensure Saudi Arabia localization
             "screenshot": True
         }
 
@@ -70,12 +86,10 @@ class NoonSpider(scrapy.Spider):
                 soup = BeautifulSoup(api_response.content, 'lxml')
                 
                 # Try different selectors for product cards
-                product_cards = soup.select('[data-qa="product-name"]')
-                
-                if not product_cards:
-                    self.logger.warning(f"No product cards found with primary selector. Trying alternatives.")
-                    product_cards = soup.select('div.productContainer') or \
-                                   soup.select('div.product-card')
+                product_cards = soup.select('[data-qa="product-name"]') or \
+                               soup.select('div.productContainer') or \
+                               soup.select('div.product-card') or \
+                               soup.select('span.name')
                 
                 products_found = 0
                 for card in product_cards:
@@ -88,7 +102,8 @@ class NoonSpider(scrapy.Spider):
                         item = {
                             'name': product_name,
                             'price': product_price,
-                            'page': page_number
+                            'page': page_number,
+                            'url': paginated_url
                         }
 
                         if self.first_item_written:
@@ -100,24 +115,30 @@ class NoonSpider(scrapy.Spider):
                 
                 self.logger.info(f"Found {products_found} products on page {page_number}")
                 
-                # Check for next page
-                next_page_link = soup.select_one('a[aria-label="Next"]')
-                if next_page_link and products_found > 0:
+                # If products were found, continue to the next page
+                if products_found > 0:
                     self.logger.info(f"Moving to page {page_number + 1}")
                     # Process the next page non-recursively
                     self.process_page(page_number + 1)
                 else:
-                    self.logger.info(f"No more pages found after page {page_number}")
+                    self.logger.info(f"No more products found after page {page_number}")
 
             else:
                 self.logger.error(f"Failed to fetch {paginated_url}: {api_response.status_code}")
                 self.logger.error(f"Response content: {api_response.text}")
 
+                # Retry on error
+                if retry_attempts < 3:
+                    delay = 2 ** retry_attempts
+                    self.logger.warning(f"Retrying page {page_number} after {delay}s...")
+                    time.sleep(delay)
+                    self.process_page(page_number, retry_attempts + 1)
+
         except Exception as e:
             self.logger.error(f"Error fetching {paginated_url}: {e}")
 
-            # Exponential Backoff for Stability - non-recursive
-            if retry_attempts < 5:
+            # Exponential Backoff for Stability
+            if retry_attempts < 3:
                 delay = 2 ** retry_attempts
                 self.logger.warning(f"Retrying page {page_number} after {delay}s...")
                 time.sleep(delay)

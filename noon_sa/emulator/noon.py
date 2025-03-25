@@ -24,7 +24,7 @@ class NoonScraper:
         'deviceName': 'emulator-5554',
         'browserName': 'Chrome',
         'automationName': 'UiAutomator2',
-        'chromedriverExecutable': r'C:\Users\Basmala Kamal\chrome\win64-124.0.6367.219\chromedriver.exe',
+        'chromedriverExecutable': r"C:\Users\Basmala Kamal\chrome\win64-124.0.6367.219\chrome-win64\chromedriver.exe",
         'newCommandTimeout': 300
     })
     

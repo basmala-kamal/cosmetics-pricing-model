@@ -1,0 +1,24 @@
+Content-Type: text/html;charset=UTF-8
+Server: Server
+Date: Tue, 06 May 2025 14:10:30 GMT
+Vary: Content-Type,Accept-Encoding,User-Agent
+X-Frame-Options: SAMEORIGIN
+X-Amz-Rid: 9JM6C3WDN5V3DCYX5THN
+Set-Cookie: ubid-acbsa=261-5440221-5284250; Domain=.amazon.sa; Expires=Wed, 06-May-2026 14:10:30 GMT; Path=/; Secure
+Content-Encoding: gzip
+X-Xss-Protection: 1;
+Pragma: no-cache
+Content-Language: en-AE
+Cache-Control: no-cache
+Expires: -1
+Accept-Ch: ect,rtt,downlink,device-memory,sec-ch-device-memory,viewport-width,sec-ch-viewport-width,dpr,sec-ch-dpr,sec-ch-ua-platform,sec-ch-ua-platform-version
+Content-Security-Policy-Report-Only: default-src 'self' blob: https: data: mediastream: 'unsafe-eval' 'unsafe-inline';report-uri https://metrics.media-amazon.com/
+X-Content-Type-Options: nosniff
+Content-Security-Policy: upgrade-insecure-requests;report-uri https://metrics.media-amazon.com/
+Accept-Ch-Lifetime: 86400
+Strict-Transport-Security: max-age=47474747; includeSubDomains; preload
+X-Cache: Miss from cloudfront
+Via: 1.1 fee1df6b41d89c0913188b5bc93286cc.cloudfront.net (CloudFront)
+X-Amz-Cf-Pop: CAI50-P1
+Alt-Svc: h3=":443"; ma=86400
+X-Amz-Cf-Id: M0rP-zpYcx5RLiJd9NMwSCcggxDlSrn6rR-9sp4Ko3FeUrEs30ndxg==

@@ -1,7 +1,7 @@
 import scrapy
 import json
 from datetime import datetime
-
+#%%
 class AmazonSpider(scrapy.Spider):
     name = "amazon_sa"
     allowed_domains = ["amazon.sa"]
@@ -12,7 +12,7 @@ class AmazonSpider(scrapy.Spider):
             self.start_urls = urls.split(",")  
         else:
             self.start_urls = [
-                "https://www.amazon.sa/s?k=dry+oil+for+body+moisture&rh=n%3A16630494031%2Cn%3A16630742031&dc&language=en_AE&ds=v1%3AT05GTsPLJebLliF7G6Qh8OrgARkjwx0xetCigJUtksw&crid=W92RU8LE0OW6&qid=1742296988&rnid=17120842031&sprefix=dry+oil+for+body+moistur%2Caps%2C328&ref=sr_nr_n_2"
+                "https://www.amazon.sa/s?k=styling+gel&crid=3266ORQFEHWZS&sprefix=styling+gel%2Caps%2C181&ref=nb_sb_noss_1&language=en_AE"
             ]
         
         self.output_files = {}
@@ -22,7 +22,7 @@ class AmazonSpider(scrapy.Spider):
             
             category = url.split("k=")[1].split("&")[0] if "k=" in url else "default"
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_file_name = f'{category}.json'
+            output_file_name = f'{category}_{timestamp}.json'
 
             
             self.output_files[url] = open(output_file_name, 'w', encoding='utf-8')

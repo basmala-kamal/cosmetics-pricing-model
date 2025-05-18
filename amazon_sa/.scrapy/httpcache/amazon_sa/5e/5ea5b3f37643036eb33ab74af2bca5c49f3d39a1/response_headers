@@ -1,0 +1,13 @@
+Server: Server
+Date: Tue, 06 May 2025 15:30:05 GMT
+Content-Type: text/html
+X-Amzn-Cdn-Id: fy-5b3be06b271b445b9eee000000000002
+Alt-Svc: h3=":443";ma=86400,h3-29=":443";ma=86400,h3-27=":443";ma=86400
+X-Amz-Rid: K3N3P98FGDWB81JK9TXD
+Vary: Content-Type,Accept-Encoding,User-Agent
+Last-Modified: Thu, 17 Apr 2025 06:06:47 GMT
+Etag: "b24-632f334f24bc0-gzip"
+Accept-Ranges: bytes
+Content-Encoding: gzip
+Strict-Transport-Security: max-age=47474747; includeSubDomains; preload
+X-Served-By: cache-mrs10540-MRS

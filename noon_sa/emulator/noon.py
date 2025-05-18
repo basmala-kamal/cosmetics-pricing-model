@@ -16,7 +16,7 @@ class NoonScraper:
     def __init__(self, version, adb_name, target_url):
         self.version = '15'
         self.adb_name = 'emulator-5554'
-        self.target_url = 'https://www.noon.com/saudi-en/search?q=styling+gel'
+        self.target_url = 'https://www.noon.com/saudi-en/search?q=face+serum'
         self.product_names = []
         self.product_prices = []
         self.driver = self.initialize_driver()
@@ -86,6 +86,6 @@ if __name__ == "__main__":
     scraper = NoonScraper(
         version='15',
         adb_name='emulator-5554',
-        target_url='https://www.noon.com/saudi-en/search?q=styling+gel'
+        target_url='https://www.noon.com/saudi-en/search?q=face+serum'
     )
     scraper.scrape()

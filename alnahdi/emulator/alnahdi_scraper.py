@@ -85,6 +85,6 @@ if __name__ == "__main__":
     scraper = AlnahdiScraper(
         version='15',
         adb_name='emulator-5554',
-        target_url='https://www.nahdionline.com/en-sa/search?query=styling+gel'
+        target_url='https://www.nahdionline.com/en-sa/search?query=shampoo'
     )
     scraper.scrape()

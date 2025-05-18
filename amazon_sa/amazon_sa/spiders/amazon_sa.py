@@ -12,7 +12,7 @@ class AmazonSpider(scrapy.Spider):
             self.start_urls = urls.split(",")  
         else:
             self.start_urls = [
-                "https://www.amazon.sa/s?k=styling+gel&crid=3266ORQFEHWZS&sprefix=styling+gel%2Caps%2C181&ref=nb_sb_noss_1&language=en_AE"
+                "https://www.amazon.sa/s?k=face+serum&crid=3266ORQFEHWZS&sprefix=face+serum%2Caps%2C181&ref=nb_sb_noss_1&language=en_AE"
             ]
         
         self.output_files = {}

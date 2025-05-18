@@ -1,0 +1,22 @@
+Server: Server
+Content-Type: text/html;charset=UTF-8
+X-Amz-Rid: ZHVGRGRKQZ4687W121WH
+Content-Language: en-AE
+Pragma: no-cache
+Cache-Control: no-cache
+Expires: -1
+Accept-Ch: ect,rtt,downlink,device-memory,sec-ch-device-memory,viewport-width,sec-ch-viewport-width,dpr,sec-ch-dpr,sec-ch-ua-platform,sec-ch-ua-platform-version
+Accept-Ch-Lifetime: 86400
+Content-Encoding: gzip
+Content-Security-Policy: upgrade-insecure-requests;report-uri https://metrics.media-amazon.com/
+Content-Security-Policy-Report-Only: default-src 'self' blob: https: data: mediastream: 'unsafe-eval' 'unsafe-inline';report-uri https://metrics.media-amazon.com/
+X-Xss-Protection: 1;
+X-Content-Type-Options: nosniff
+Strict-Transport-Security: max-age=47474747; includeSubDomains; preload
+Vary: Content-Type,Accept-Encoding,User-Agent
+X-Frame-Options: SAMEORIGIN
+Date: Tue, 13 May 2025 12:46:53 GMT
+Set-Cookie: ubid-acbsa=261-9067500-3794523; Domain=.amazon.sa; Expires=Wed, 13-May-2026 12:46:53 GMT; Path=/; Secure
+Alt-Svc: h3=":443"; ma=93600
+X-Amzn-Cdn-Id: ak-0.86d81102.1747140412.9aa37686
+X-Cache: NotCacheable from child

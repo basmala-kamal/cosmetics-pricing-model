@@ -24,3 +24,9 @@ jobs:
 
       - name: Run scraper
         run: python amazon_sa/amazon_sa/spiders/amazon_sa.py
+
+      - name: Upload output JSON file
+        uses: actions/upload-artifact@v4
+        with:
+          name: scraped-output
+          path: '*.json'

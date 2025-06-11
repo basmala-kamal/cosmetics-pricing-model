@@ -23,4 +23,4 @@ jobs:
           pip install scrapy
 
       - name: Run scraper
-        run: python amazon_sa.py
+        run: python amazon_sa/amazon_sa/spiders/amazon_sa.py

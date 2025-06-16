@@ -1,0 +1,40 @@
+name: Generate Amazon & Noon Notebooks
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Run Noon Scraper Daily"]
+    types:
+      - completed
+
+jobs:
+  generate-notebooks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Download JSON artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: noon-scraped-output
+
+      - name: Install dependencies
+        run: pip install nbformat
+
+      - name: Generate both notebooks
+        run: python generate_notebooks.py
+
+      - name: Upload notebooks as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-notebooks
+          path: |
+            notebook_noon.ipynb
+            notebook_amazon.ipynb

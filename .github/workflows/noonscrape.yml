@@ -23,7 +23,7 @@ jobs:
           pip install scrapy beautifulsoup4 lxml requests
 
       - name: Run Noon Scraper
-        run: scrapy runspider noon_sa.py
+        run: scrapy runspider noon_sa/noon_sa/spiders/noon_sa.py
 
       - name: Upload JSON Output
         uses: actions/upload-artifact@v4

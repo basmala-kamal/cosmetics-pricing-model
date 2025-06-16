@@ -1,4 +1,4 @@
-name: Run Scraper Daily
+name: Run Amazon Scraper Daily
 
 on:
   schedule:

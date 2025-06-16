@@ -2,7 +2,7 @@ name: Run Noon Scraper Daily
 
 on:
   schedule:
-    - cron: '30 15 * * *'  # 6:30 PM EEST (2:30 PM UTC)
+    - cron: '23 16 * * *'  # 6:30 PM EEST (2:30 PM UTC)
   workflow_dispatch:       # Manual trigger from GitHub UI
 
 jobs:
@@ -23,7 +23,7 @@ jobs:
           pip install scrapy beautifulsoup4 lxml requests
 
       - name: Run Noon Scraper
-        run: scrapy runspider amazon_sa.py
+        run: scrapy runspider noon_sa.py
 
       - name: Upload JSON Output
         uses: actions/upload-artifact@v4

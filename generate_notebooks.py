@@ -24,5 +24,5 @@ def render(template_file, output_file, keyword):
     nbformat.write(nb, output_file)
     print(f"{output_file} created.")
 
-render("sourcebeauty_makeupbrands_clustering.ipynb", "notebook_noon.ipynb", "noon")
-render("sourcebeauty_makeupbrands_clustering.ipynb", "notebook_amazon.ipynb", "amazon")
+render("shopify/shopify/shopify/spiders/sourcebeauty_makeupbrands_clustering.ipynb", "notebook_noon.ipynb", "noon")
+render("shopify/shopify/shopify/spiders/sourcebeauty_makeupbrands_clustering.ipynb", "notebook_amazon.ipynb", "amazon")

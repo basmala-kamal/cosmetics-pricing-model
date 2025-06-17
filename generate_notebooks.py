@@ -2,6 +2,7 @@ import json
 import nbformat
 import glob
 import shutil
+import os
 
 def render(template_file, output_file, keyword):
     candidates = sorted(glob.glob(f"*{keyword}*.json"), reverse=True)

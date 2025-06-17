@@ -20,10 +20,13 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Download JSON artifacts
+      - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           name: noon-scraped-output
+
+      - name: List files
+        run: ls -lh
 
       - name: Install dependencies
         run: pip install nbformat

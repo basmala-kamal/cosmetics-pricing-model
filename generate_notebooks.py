@@ -6,21 +6,21 @@ import os
 
 def render(template_file, output_file, keyword):
     candidates = sorted(glob.glob(f"*{keyword}*.json"), reverse=True)
+    json_filename = None
     for f in candidates:
         if os.path.getsize(f) > 30:  # skip empty or invalid files
             json_filename = f
             break
-    else:
+    if not json_filename:
         print(f"No usable JSON files found for {keyword}")
         return
 
-    json_filename = json_files[0]
     nb = nbformat.read(template_file, as_version=4)
 
     for cell in nb.cells:
         if 'with open(' in cell.source:
             cell.source = cell.source.replace("with open(\"B:", f"with open(\"{json_filename}")
-    
+
     nbformat.write(nb, output_file)
     print(f"{output_file} created.")
 

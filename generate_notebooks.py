@@ -3,10 +3,14 @@ import nbformat
 import glob
 import shutil
 
-def render(template_file, output_file, json_keyword):
-    json_files = sorted(glob.glob(f"*{json_keyword}*.json"), reverse=True)
-    if not json_files:
-        print(f"No matching JSON for {json_keyword}")
+def render(template_file, output_file, keyword):
+    candidates = sorted(glob.glob(f"*{keyword}*.json"), reverse=True)
+    for f in candidates:
+        if os.path.getsize(f) > 30:  # skip empty or invalid files
+            json_filename = f
+            break
+    else:
+        print(f"No usable JSON files found for {keyword}")
         return
 
     json_filename = json_files[0]

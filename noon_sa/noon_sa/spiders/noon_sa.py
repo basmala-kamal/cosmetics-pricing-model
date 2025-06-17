@@ -28,7 +28,7 @@ class NoonSpider(scrapy.Spider):
 
     def __init__(self, urls=None, *args, **kwargs):
         super(NoonSpider, self).__init__(*args, **kwargs)
-        self.api_key = 'd3f13b11a6dc4c05b170b31655780006'
+        self.api_key = '85e9f47391244a40b2bb88ed74e364ca'
         self.start_url = urls or "https://www.noon.com/saudi-en/search/?q=body+splash&page=1"
         self.output_file_name = f"noon_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         self.output_file = open(self.output_file_name, 'w', encoding='utf-8')
@@ -106,3 +106,4 @@ class NoonSpider(scrapy.Spider):
         self.logger.info(f"Spider closed. Reason: {reason}")
         self.output_file.write(']')
         self.output_file.close()
+

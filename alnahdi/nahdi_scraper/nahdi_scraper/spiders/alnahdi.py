@@ -27,7 +27,7 @@ class AlNahdiSpider(scrapy.Spider):
 
     def __init__(self, urls=None, *args, **kwargs):
         super(AlNahdiSpider, self).__init__(*args, **kwargs)
-        self.api_key = 'd3f13b11a6dc4c05b170b31655780006'
+        self.api_key = '85e9f47391244a40b2bb88ed74e364ca'
         self.start_url = urls or "https://www.nahdionline.com/en-sa/search?query=face%20serums&page=1"
         self.output_file_name = f"alnahdi_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         self.output_file = open(self.output_file_name, 'w', encoding='utf-8')

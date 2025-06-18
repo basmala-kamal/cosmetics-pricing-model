@@ -1,8 +1,7 @@
 name: Run Noon Scraper Daily
 
 on:
-  schedule:
-    - cron: '23 16 * * *'  # 6:30 PM EEST (2:30 PM UTC)
+  # 6:30 PM EEST (2:30 PM UTC)
   workflow_dispatch:       # Manual trigger from GitHub UI
 
 jobs:
